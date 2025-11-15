@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Birthday Pixel Cake</title>
+
+<style>
+html,body{
+  margin:0; padding:0;
+  width:100%; height:100%;
+  overflow:hidden;
+  background:#041022;
+  color:#eef;
+  font-family:Arial, sans-serif;
+  text-align:center;
+  cursor:pointer;
+}
+#canvasWrap{
+  width:100%; height:100%;
+  position:fixed; top:0; left:0;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  gap:20px;
+}
+#pixelCanvas{
+  display:block;
+  background:transparent;
+  width:100vw;
+  height:70vh;
+}
+#blowBtn{
+  padding:12px 18px;
+  border-radius:12px;
+  border:none;
+  background:#ff7eb9;
+  color:white;
+  font-weight:700;
+  cursor:pointer;
+  font-size:18px;
+}
+#countdown{
+  font-size:32px;
+  margin-top:10px;
+  display:none;
+}
+#letter{
+  display:none;
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,0.7);
+  align-items:center;
+  justify-content:center;
+}
+#letterBox{
+  background:#fffde8;
+  color:#333;
+  padding:28px 30px;
+  border-radius:14px;
+  max-width:420px;
+  line-height:1.5;
+  box-shadow:0 10px 30px rgba(0,0,0,0.4);
+  font-size:20px;
+  text-align:center;
+}
+#hint{
+  position:fixed;
+  bottom:20px;
+  font-size:18px;
+  color:#fff;
+  opacity:0.7;
+}
+</style>
+</head>
+
+<body>
+
+<audio id="bgm" preload="auto" loop>
+  <source src="videoplayback.m4a" type="audio/mp4">
+</audio>
+
+<div id="canvasWrap">
+  <canvas id="pixelCanvas" width="560" height="360"></canvas>
+  <div>
+    <button id="blowBtn">Tiup Lilin</button>
+    <div id="countdown"></div>
+  </div>
+</div>
+
+<div id="letter">
+  <div id="letterBox">
+    ₊ Happy Birthday Haree, semoga yang di semogakan tersemogakan 
+    I Wish U Happiness N Health🎂! <br><br>
+    sweet-bestfrannn: rhea 🎀
+  </div>
+</div>
+
+<div id="hint">Klik di layar untuk memulai musik 🎵</div>
+
+<script>
+const audio = document.getElementById("bgm");
+const hint = document.getElementById("hint");
+let audioStarted = false;
+
+// MAIN AUDIO START + HIDE HINT
+document.body.addEventListener("click", ()=>{
+  if(!audioStarted){
+    audio.play().catch(()=>{});
+    hint.style.display='none';
+    audioStarted = true;
+  }
+}, { once:true });
+
+const canvas = document.getElementById('pixelCanvas');
+const ctx = canvas.getContext('2d');
+const blowBtn = document.getElementById('blowBtn');
+const cd = document.getElementById('countdown');
+
+let candleOn = true;
+
+const PIX = 8;
+const W = canvas.width / PIX;
+const H = canvas.height / PIX;
+
+const pal = {
+  cake:'#b85a3b',
+  icing:'#ffd6b8',
+  candle:'#7ee3ff',
+  cherry:'#ff4466'
+};
+
+function drawGrid(fn){
+  for(let y=0;y<H;y++){
+    for(let x=0;x<W;x++){
+      const c = fn(x,y);
+      if(!c) continue;
+      ctx.fillStyle=c;
+      ctx.fillRect(x*PIX,y*PIX,PIX,PIX);
+    }
+  }
+}
+
+// FLICKERING CANDLE
+function cakePixel(x,y){
+  const cx=Math.floor(W/2);
+
+  if(x>=cx-12&&x<=cx+12&&y>=12&&y<=20) return pal.cake;
+  if(x>=cx-12&&x<=cx+12&&y>=10&&y<=11) return pal.icing;
+  if((x===cx-4||x===cx+4)&&y===11) return pal.cherry;
+
+  const cxs=[cx-6,cx,cx+6];
+  for(let i=0;i<cxs.length;i++){
+    let cxp=cxs[i];
+    if(x===cxp&&y>=6&&y<=9) return pal.candle;
+
+    if(candleOn){
+      const t = Date.now()/200;
+      const flick = Math.sin(t + i*1.3);
+      if(x===cxp&&y===5) return flick>-0.8?"#ffb86b":"#ff9a3c";
+      if((x===cxp-1||x===cxp+1)&&y===4) return flick>0?"#ffec99":"#ffd36b";
+      if(x===cxp&&y===4) return flick>0.3?"#fff1b8":"#ffec99";
+      if(x===cxp&&y===3) return flick>0.6?"#fff6d1":"#fff1b8";
+    }
+  }
+  return null;
+}
+
+function loop(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  drawGrid(cakePixel);
+  requestAnimationFrame(loop);
+}
+loop();
+
+// TIUP LILIN
+blowBtn.addEventListener('click', ()=>{
+  let n=3;
+  cd.style.display='block';
+  cd.textContent=n;
+
+  const iv=setInterval(()=>{
+    n--;
+    cd.textContent=n;
+    if(n===0){
+      clearInterval(iv);
+      cd.style.display='none';
+      candleOn=false;
+      setTimeout(()=>{
+        document.getElementById('letter').style.display='flex';
+      },600);
+    }
+  },1000);
+});
+</script>
+
+</body>
+</html>
